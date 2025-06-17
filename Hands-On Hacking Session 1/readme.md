@@ -97,7 +97,7 @@ Now that you've created an agent, you can test it in the playground chat.
     ```
     (Windows)
    python -m venv labenv
-   ./labenv/bin/Activate.ps1
+   ./labenv/Scripts/Activate.ps1
 
     (Mac)
     python3 -m venv labenv
