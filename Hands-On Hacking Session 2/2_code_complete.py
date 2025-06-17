@@ -1,18 +1,6 @@
-import os
-from dotenv import load_dotenv
-
-# Add references
-
-
-# Clear the console
-os.system('cls' if os.name=='nt' else 'clear')
-
-# Load environment variables from .env file
-load_dotenv()
-project_endpoint = os.getenv("PROJECT_ENDPOINT")
-model_deployment = os.getenv("MODEL_DEPLOYMENT_NAME")
-
-# Create the agents client
+from azure.identity.aio import DefaultAzureCredential
+from semantic_kernel.agents import AzureAIAgent, AzureAIAgentSettings
+from azure.ai.agents.models import FileSearchTool, FilePurpose
 
 
 # Agent instructions
@@ -66,78 +54,51 @@ buchungs_agent_instructions = """
 Du bist der Buchungs-Agent. Führe die Buchung durch, sobald eine genehmigte Option vorliegt. Bestätige die Buchung und gib eine Zusammenfassung der gebuchten Reise zurück.
 """
 
-with agents_client:
 
-    # Reference the existing Bing Grounding Agent
-    recherche_agent = agents_client.get_agent(
-        agent_id="Recherche_Agent_ID" # Replace with actual ID of the Bing Grounding Agent
-    )
+async def main() -> None:
+    ai_agent_settings = AzureAIAgentSettings()
 
+    async with (
+        DefaultAzureCredential() as creds,
+        AzureAIAgent.create_client(credential=creds, endpoint=ai_agent_settings.endpoint) as client,
+    ):
+        
+        
+         # Reference the existing Bing Grounding Agent
+        research_agent_definition = await client.agents.get_agent(assistant_id="your-agent-id")
+        research_agent = AzureAIAgent(client=client, definition=research_agent_definition)
 
-    # Create the Booking Agent
+        
 
-    
-    # Define the path to the file to be uploaded
-    policy_file_path = "Resources/Reiserichtlinie_Munich_Agent_Factory_GmbH_v1.pdf"
+        # Define the path to the file to be uploaded
+        policy_file_path = "Reiserichtlinie_Munich_Agent_Factory_GmbH_v1.pdf"
 
-    # Upload the travel policy file to foundry and create a vector store
-   
+        # Upload the file to foundry and create a vector store
+        file = await client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)
+        vector_store = await client.vector_stores.create_and_poll(file_ids=[file.id], name="travel_policy_vector_store")
 
-    # Create file search tool with resources followed by creating agent
-   
+        # Create file search tool with resources followed by creating agent
+        file_search = FileSearchTool(vector_store_ids=[vector_store.id])
 
-    # Create the policy agent using the file search tool
-  
-
-    # Create the connected agent tools for all 3 agents
-    # Note: The connected agent tools are used to connect the agents to the orchestrator agent
-    policy_agent_tool = ConnectedAgentTool(
-        id=policy_agent.id,
-        name=policy_agent_name,
-        description="Prüft die Reiserichtlinie für die geplante Reise."
-    )
-
-    # add recherche_agent_tool
-    
-
-    # add buchungs_agent_tool 
-
-
-    # Create the Orchestrator Agent
-    # This agent will coordinate the other agents based on user input
-    
-
-    print(f"Orchestrator-Agent '{orchestration_agent_name}' und verbundene Agenten wurden erfolgreich erstellt.")
-
-    # === Thread for Terminal Interaction ===
-    thread = agents_client.threads.create()
-    print("\nGib deine Reiseanfrage ein (oder 'exit' zum Beenden):")
-    while True:
-        user_input = input("> ")
-        if user_input.strip().lower() == "exit":
-            break
-
-        agents_client.messages.create(
-            thread_id=thread.id,
-            role=MessageRole.USER,
-            content=user_input,
+       # Create the policy agent using the file search tool
+        policy_agent_definition = await client.agents.create_agent(
+            model=ai_agent_settings.model_deployment_name,
+             name=policy_agent_name,
+            instructions=policy_agent_instructions,
+            tools=file_search.definitions,
+            tool_resources=file_search.resources,
         )
+        policy_agent = AzureAIAgent(client=client, definition=policy_agent_definition)
 
-        print("Verarbeite Anfrage...")
-        run = agents_client.runs.create_and_process(thread_id=thread.id, agent_id=orchestrator_agent.id)
-        if run.status == "failed":
-            print(f"Run fehlgeschlagen: {run.last_error}")
-            continue
+# Create a Plugin for the email functionality
+class EmailPlugin:
+   """A Plugin to simulate email functionality."""
 
-        messages = agents_client.messages.list(thread_id=thread.id, order=ListSortOrder.ASCENDING)
-        for message in messages:
-            if message.text_messages:
-                last_msg = message.text_messages[-1]
-                print(f"{message.role}:\n{last_msg.text.value}\n")
-
-    # Aufräumen
-    # print("Lösche Agenten...")
-    agents_client.delete_agent(orchestrator_agent.id)
-    agents_client.delete_agent(policy_agent.id)
-    agents_client.delete_agent(buchungs_agent.id)
-    print("Alle Agenten wieder gelöscht.")
+   @kernel_function(description="Sends an email.")
+   def send_email(self,
+                  to: Annotated[str, "Who to send the email to"],
+                  subject: Annotated[str, "The subject of the email."],
+                  body: Annotated[str, "The text body of the email."]):
+       print("\nTo:", to)
+       print("Subject:", subject)
+       print(body, "\n")

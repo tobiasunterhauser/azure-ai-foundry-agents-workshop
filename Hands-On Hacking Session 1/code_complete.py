@@ -84,7 +84,7 @@ with agents_client:
 
     
     # Define the path to the file to be uploaded
-    policy_file_path = "Reiserichtlinie_Munich_Agent_Factory_GmbH_v1.pdf"
+    policy_file_path = "Resources/Reiserichtlinie_Munich_Agent_Factory_GmbH_v1.pdf"
 
     # Upload the file to foundry and create a vector store
     file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)
