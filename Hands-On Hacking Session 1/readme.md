@@ -1,9 +1,3 @@
----
-lab:
-    title: 'Hands-On Hack: AI Foundry SDK'
-    description: 'Take your first steps in developing AI agents by exploring the Azure AI Agent service in the Azure AI Foundry portal.'
----
-
 # Hands-On Hack Session 1: AI Foundry & SDK
 
 In this exercise, you use the Azure AI Agent service in the Azure AI Foundry portal to create a simple agentic workflow.
