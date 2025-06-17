@@ -97,10 +97,10 @@ with agents_client:
         description="Prüft die Reiserichtlinie für die geplante Reise."
     )
 
-    #TODO: add recherche_agent_tool
+    # add recherche_agent_tool
     
 
-    #TODO: add buchungs_agent_tool 
+    # add buchungs_agent_tool 
 
 
     # Create the Orchestrator Agent
