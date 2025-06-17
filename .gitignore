@@ -1,0 +1,14 @@
+# Ignore Python virtual environment
+labenv/
+labenv/*
+
+# Ignore environment variable files
+.env
+.env.*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# VSCode settings (optional)
