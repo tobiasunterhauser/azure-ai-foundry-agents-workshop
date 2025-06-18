@@ -72,7 +72,7 @@ Now that you have a model deployed, you're ready to build the first AI agent. In
     ![Screenshot of the AI agent setup page in Azure AI Foundry portal.](./Media/ai-agent-setup.png)
 
 1. Further down in the **Setup** pane, next to the **Knowledge** header, select **+ Add**. Then in the **Add knowledge** dialog box, select **Grounding with Bing Search**.
-1. In the **Choosing an existing Grounding with Bing Search connection** dialog box, select the Grounding with Bing resource you created earlier and click on connect.
+1. In the **Choosing an existing Grounding with Bing Search connection** dialog box, select the **Grounding with Bing Search** resource you created earlier and click on connect.
 
     Your agent can now accesss the internet to seearch for up do tate availability of hotels, flight and train connections.
 
