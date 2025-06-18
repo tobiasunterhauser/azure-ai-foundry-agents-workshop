@@ -61,7 +61,7 @@ You'll see that an agent with a default name has been created for you, along wit
 
 Now that you have a model deployed, you're ready to build the first AI agent. In this exercise, you'll build a simple agent that answers questions based on a corporate expenses policy. You'll download the expenses policy document, and use it as *grounding* data for the agent.
 
-1. Go to the Azure Portal and create a Grounding with Bing Search resource, ideally in the same resource group as the Foundry Project is located
+1. Go to the Azure Portal and create a **Grounding with Bing Search** resource, ideally in the same resource group as the Foundry Project is located
 1. Return to the browser tab containing the Foundry Portal and go on the Agents Tab.
 1. Click on create new Agent and set the **Agent name** to `Reise-Recherche-Agent`, ensure that the gpt-4.1 model deployment you created previously is selected, and set the **Instructions** to:
 
