@@ -154,9 +154,11 @@ Now you're ready to create the agents for your multi-agent solution! Let's get s
     )
     ```
 
+1. Take a look at the **Reiserichtline_Munich_Agent_Factory_GmbH_v1.pdf** located in the Resources folder. We want to upload this file to a vector store to make it available for our agent as a knowledge source.
+
 1. Locate the comment **Upload the travel policy file to foundry and create a vector store** and add the following code:
      ```python
-    file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)
+    file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)S
     vector_store = agents_client.vector_stores.create_and_poll(file_ids=[file.id], name="travel_policy_vector_store")
     ```
 
