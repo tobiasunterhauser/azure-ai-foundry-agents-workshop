@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from azure.identity.aio import DefaultAzureCredential
-from semantic_kernel.agents import AzureAIAgent, AzureAIAgentSettings, AgentGroupChat
+from semantic_kernel.agents import AzureAIAgent, AzureAIAgentSettings, ChatHistoryAgentThread, ChatCompletionAgent
 from typing import Annotated
 from semantic_kernel.agents.strategies import (
     KernelFunctionSelectionStrategy,
@@ -13,11 +13,8 @@ from semantic_kernel.functions import kernel_function, KernelFunctionFromPrompt
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 from semantic_kernel.contents import ChatHistoryTruncationReducer
+from semantic_kernel.filters import FunctionInvocationContext
 
-# Get configuration settings
-load_dotenv()
-project_endpoint = os.getenv("AZURE_AI_AGENT_ENDPOINT")
-model_deployment = os.getenv("AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME")
 
 ai_agent_settings = AzureAIAgentSettings()
 
@@ -27,24 +24,66 @@ bookings_agent_name = "buchungs_agent"
 booking_agent_instructions = """
 Du bist der Buchungs-Agent. Führe die Buchung durch, sobald eine genehmigte Option vorliegt. Bestätige die Buchung und sende eine Bestätigung mit Zusammenfassung über das EmailPlug.
 """
-
 hr_agent_name = "hr_agent"
 hr_agent_instructions = """
 Du bist der HR-Agent. Du kannst über das Human Resources System Plugin alle Informationen über die Mitarbeitenden, die für die Reisebuchung benötigt werden. Deine Aufgabe ist es, diese Informationen bereitzustellen, wenn der Orchestrierungs-Agent sie anfordert.
 """
 
-WRITER_NAME = "user"
+orchestration_agent_instructions = """
+Du bist der Orchestrator-Agent in einem Multi-Agentensystem für die Planung von Geschäftsreisen.
 
-def create_kernel() -> Kernel:
-    kernel = Kernel()
-    kernel.add_service(
-        service=AzureChatCompletion(
-            deployment_name=model_deployment,
-            endpoint="endpoint",
-            api_key="api-key",
-        )
-    )
-    return kernel
+## Ziel
+Koordiniere spezialisierte Agenten, um anhand natürlicher Spracheingaben vollständige, regelkonforme Reisen für Mitarbeitende zu planen und zu buchen.
+
+## Ablauf
+
+1. **Datenerfassung:**  
+    Sobald eine Nutzereingabe eingeht, stelle sicher, dass folgende Informationen vollständig vorliegen:
+    - Startort
+    - Zielort
+    - Hinreisedatum
+    - Rückreisedatum
+    - Gewünschte Startuhrzeit (Hinreise)
+    - Gewünschte Rückreiseuhrzeit (Rückreise)
+
+    Frage gezielt nach, falls eine dieser Angaben fehlt oder unklar ist. Wiederhole die Rückfrage, bis alle Daten vollständig und eindeutig sind.
+
+2. **Policy-Prüfung:**  
+    Sobald alle Reisedaten vorliegen, beauftrage den Policy_Prüfungs_Agent, die Reiserichtlinie zu prüfen:
+    - Ist eine Flugreise oder nur eine Bahnreise erlaubt?
+    - Welche Reiseklasse ist zulässig?
+
+    Warte das Ergebnis ab, gib es aber nur an den Recherche Agent weiter und nicht an den User aus. Fahre erst fort, wenn die Policy-Prüfung abgeschlossen ist.
+
+3. **Recherche:**  
+    Beauftrage den Recherche_Agent, passende Transport- und Unterkunftsoptionen auf Basis der Policy-Ergebnisse und Nutzereingaben zu suchen.
+
+4. **Auswahl und Bestätigung:**  
+    Präsentiere dem Nutzer die gefundenen Optionen und frage nach einer Auswahl bzw. Bestätigung.
+
+5. **HR-Daten:**  
+    Hole die benötigten persönlichen Informationen des Nutzers vom HR Agent ab, um die Buchung abzuschließen. Dies umfasst:
+    - Name des Nutzers
+    - E-Mail-Adresse des Nutzers
+
+6. **Buchung:**  
+    Vor durchfürhugn der Buchung frage nochmal nach einer finalen Bestätigung des Nutzers. Nach Bestätigung durch den Nutzer, beauftrage den Buchungs_Agent mit der Buchung der ausgewählten Option. Die E-Mail-Adresse des Nutzers sowie persönliche Informationen werden vom HR Agent bereitgestellt. Sende die Mail über das EmailPlugin.
+## Fehler- und Iterationslogik
+- Falls der Recherche_Agent keine gültigen Optionen findet, frage den Nutzer gezielt nach Alternativen (z. B. andere Uhrzeit, mehr Flexibilität, alternative Hotels).
+- Wiederhole den Ablauf nach Anpassung der Parameter.
+- Im Falle einer Policy-Verletzung: Informiere den Nutzer, biete ggf. Alternativen an oder leite für Genehmigung weiter.
+
+## Antwortstil
+- Kurz, präzise und prozessfokussiert
+- Antworte wie ein einsatzbereiter Koordinator: „Startort fehlt – Rückfrage erforderlich.“ oder „Alle Daten vollständig – starte Policy-Prüfung.“
+- Gib keine Information an den Nutzer aus die für ihn unbedeutend ist, wie z.B. die Namen der Agenten oder deren Aufgaben. Auch die Details der Travelpolicy sind nicht für ihn wichtig. Wichtig ist nur das er in 2 Sätzen sieht was er Buchung kann und das die Recherche entsprechend der Policy durchgeführt wird
+
+## Wichtig
+- Reagiere wie ein Agent im Einsatz, nicht wie ein Chatbot.
+- Dein Ziel ist es, Entscheidungen anzustoßen, nicht passiv zu warten.
+- Folge strikt dem definierten Ablauf, initiiere Folgeaktionen aktiv.
+"""
+
 
 class EmailPlugin:
     """A Plugin to simulate email functionality."""
@@ -74,26 +113,58 @@ class HumanResourcesPlugin:
             "email": "max.mustermann@example.com"
         }
     
+async def function_invocation_filter(context: FunctionInvocationContext, next):
+    """A filter that will be called for each function call in the response."""
+    if "messages" not in context.arguments:
+        await next(context)
+        return
+    #print(f"    Agent [{context.function.name}] called with messages: {context.arguments['messages']}")
+    await next(context)
+    print(f"    Response from agent [{context.function.name}]: {context.result.value}")
 
-def parse_selection_result(result):
-    if not result.value:
-        return policy_agent_name  # Fallback
-    # result.value könnte eine Liste sein oder ein String
-    if isinstance(result.value, list):
-        return str(result.value[0]).strip()
-    else:
-        return str(result.value).strip()
+async def chat(triage_agent: ChatCompletionAgent, thread: ChatHistoryAgentThread = None) -> bool:
+    """
+    Continuously prompt the user for input and show the assistant's response.
+    Type 'exit' to exit.
+    """
+    try:
+        user_input = input("User:> ")
+    except (KeyboardInterrupt, EOFError):
+        print("\n\nExiting chat...")
+        return False
+
+    if user_input.lower().strip() == "exit":
+        print("\n\nExiting chat...")
+        return False
+
+    response = await triage_agent.get_response(
+        messages=user_input,
+        thread=thread,
+    )
+
+    if response:
+        print(f"Agent :> {response}")
+
+    return True
 
 async def main():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    kernel = create_kernel()
+    # Create and configure the kernel.
+    kernel = Kernel()
+
+    # The filter is used for demonstration purposes to show the function invocation.
+    kernel.add_filter("function_invocation", function_invocation_filter)
+
+    ai_agent_settings = AzureAIAgentSettings()
+
+    chat_completion_service = AzureChatCompletion(
+    deployment_name="gpt-4.1",  
+    api_key="",
+    endpoint="", # Used to point to your service
+)
 
     async with (
-        DefaultAzureCredential(
-            exclude_environment_credential=True,
-            exclude_managed_identity_credential=True
-        ) as creds,
-        AzureAIAgent.create_client(credential=creds) as project_client,
+        DefaultAzureCredential() as creds,
+        AzureAIAgent.create_client(credential=creds, endpoint=ai_agent_settings.endpoint) as project_client,
     ):
         # Reference existing agents
         research_agent_definition = await project_client.agents.get_agent(agent_id="asst_vMGXYaYdFceK3qhvUTG11FNq")
@@ -104,7 +175,7 @@ async def main():
 
         # Create booking agent with plugin
         booking_agent_definition = await project_client.agents.create_agent(
-            model=model_deployment,
+            model=ai_agent_settings.model_deployment_name,
             name=bookings_agent_name,
             instructions=booking_agent_instructions
         )
@@ -116,7 +187,7 @@ async def main():
 
         # Create HR agent with plugin
         hr_agent_definition = await project_client.agents.create_agent(
-            model=model_deployment,
+            model=ai_agent_settings.model_deployment_name,
             name=hr_agent_name,
             instructions=hr_agent_instructions
         )
@@ -126,83 +197,23 @@ async def main():
             plugins=[HumanResourcesPlugin()]
         )
 
-        # Selection function decides next agent based on conversation history
-        selection_function = KernelFunctionFromPrompt(
-            function_name="selection",
-            prompt=f"""
-                Entscheide basierend auf dem Gesprächsverlauf, welcher Agent als nächstes handeln soll.
-                Verfügbare Agenten:
-                - {hr_agent_name}
-                - {policy_agent_name}
-                - {research_agent_name}
-                - {bookings_agent_name}
-
-                Idealer Ablauf: HR > Policy > Recherche > Buchung. Reagiere auf Nutzerfeedback, wenn Recherche scheitert.
-
-                Letzte Nutzer- oder Agenten-Nachricht:
-                {{{{$lastmessage}}}}
-
-                Antwort nur den Namen des nächsten Agenten (ohne weitere Kommentare).
-            """
+        orchestration_agent = ChatCompletionAgent(
+            service=chat_completion_service,
+            kernel=kernel,
+            name="OrchestrationAgent",
+            instructions=orchestration_agent_instructions,
+            plugins=[policy_agent, hr_agent, research_agent, booking_agent],
         )
+        
+        thread = ChatHistoryAgentThread()
+        
+        print("\nGib deine Reiseanfrage ein (oder 'exit' zum Beenden):")
 
-        # Termination function checks if booking is confirmed
-        termination_function = KernelFunctionFromPrompt(
-            function_name="termination_check",
-            prompt="""
-                Beurteile, ob das Gespräch abgeschlossen ist und die Buchung bestätigt wurde.
-                Antwort mit "True" wenn abgeschlossen, sonst "False".
-                Letzte Nachrichten:
-                {{$chat_history}}
-            """
-        )
+        chatting = True
+        while chatting:
+            chatting = await chat(orchestration_agent, thread)
 
-        history_reducer = ChatHistoryTruncationReducer(target_count=10)
 
-        chat = AgentGroupChat(
-            agents=[hr_agent, policy_agent, research_agent, booking_agent],
-            selection_strategy=KernelFunctionSelectionStrategy(
-                initial_agent=policy_agent,
-                function=selection_function,
-                kernel=kernel,
-                result_parser=lambda result: (str(result.value).strip() if result.value else policy_agent_name),
-                history_variable_name="lastmessage",
-                history_reducer=history_reducer,
-            ),
-            termination_strategy=KernelFunctionTerminationStrategy(
-                function=termination_function,
-                kernel=kernel,
-                history_variable_name="chat_history",
-                history_reducer=history_reducer,
-                result_parser=lambda r: r.value.strip().lower() == "true"
-            )
-        )
-
-        print("System bereit. Eingabe starten (oder 'exit', 'reset')")
-
-        while True:
-            user_input = input("\nUser > ").strip()
-            if not user_input:
-                continue
-            if user_input.lower() == "exit":
-                print("Beende Konversation.")
-                break
-            if user_input.lower() == "reset":
-                await chat.reset()
-                print("[Konversation wurde zurückgesetzt]")
-                continue
-
-            await chat.add_chat_message(message=user_input)
-            try:
-                async for response in chat.invoke():
-                    if response and response.name:
-                        print(f"\n# {response.name.upper()}:\n{response.content}")
-            except Exception as e:
-                print(f"[Fehler bei Chat-Inferenz: {e}]")
-
-            if chat.is_complete:
-                print("\n[Gespräch abgeschlossen. Buchung bestätigt!]")
-                break
 
 if __name__ == "__main__":
     asyncio.run(main())
