@@ -43,7 +43,7 @@ Let's start by creating an Azure AI Foundry project.
 1. Expand **Advanced options** and specify the following settings:
     - **Azure AI Foundry resource**: *A valid name for your Azure AI Foundry resource*
     - **Subscription**: *Your Azure subscription*
-    - **Resource group**: *Select your resource group, or create a new one*
+    - **Resource group**: *Select your resource group, or create a new one(e.g. Sweden Central)*
     - **Region**: *Select any **AI Services supported location***\*
 
     > \* Some Azure AI resources are constrained by regional model quotas. In the event of a quota limit being exceeded later in the exercise, there's a possibility you may need to create another resource in a different region.
@@ -61,7 +61,7 @@ You'll see that an agent with a default name has been created for you, along wit
 
 Now that you have a model deployed, you're ready to build the first AI agent. In this exercise, you'll build a simple agent that answers questions based on a corporate expenses policy. You'll download the expenses policy document, and use it as *grounding* data for the agent.
 
-1. Go to the Azure Portal and create a **Grounding with Bing Search** resource, ideally in the same resource group as the Foundry Project is located
+1. Go to the Azure Portal and create a **Grounding with Bing Search** (https://ms.portal.azure.com/#create/Microsoft.BingGroundingSearch) resource, ideally in the same resource group as the Foundry Project is located
 1. Return to the browser tab containing the Foundry Portal and go on the Agents Tab.
 1. Click on create new Agent and set the **Agent name** to `Reise-Recherche-Agent`, ensure that the gpt-4.1 model deployment you created previously is selected, and set the **Instructions** to:
 
@@ -110,7 +110,7 @@ Now that you've created an agent, you can test it in the playground chat.
 
     ````
 
-1. Open the .env file and  replace the **your_project_endpoint** placeholder with the endpoint for your project (copied from the project **Overview** page in the Azure AI Foundry portal), and the **your_model_deployment** placeholder with the name you assigned to your gpt-4o model deployment.
+1. Open the .env file and  replace the **your_project_endpoint** placeholder with the endpoint for your project (copied from the project **Overview** page in the Azure AI Foundry portal), and the **your_model_deployment** placeholder with the name you assigned to your gpt-4o model deployment (found in the **Models + endpoints** in the AI Foundry portal).
 
 1. After you've replaced the placeholders, use the **CTRL+S** command to save your changes and then use the **CTRL+Q** command to close the code editor while keeping the cloud shell command line open.
 
@@ -156,7 +156,7 @@ Now you're ready to create the agents for your multi-agent solution! Let's get s
 
 1. Locate the comment **Upload the travel policy file to foundry and create a vector store** and add the following code:
      ```python
-    file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)S
+    file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)
     vector_store = agents_client.vector_stores.create_and_poll(file_ids=[file.id], name="travel_policy_vector_store")
     ```
 
@@ -167,10 +167,10 @@ Now you're ready to create the agents for your multi-agent solution! Let's get s
     file_search = FileSearchTool(vector_store_ids=[vector_store.id])
     ```
 
-1. Locate the comment **Create the policy agent using the file search tool**, create the policy_agent by looking on how the buchungs_agent was created. Hint: You need to add the following for the file search tool calling when calling the create_agent method: 
+1. Locate the comment **Create the policy agent using the file search tool**, create the policy_agent by looking on how the buchungs_agent was created. Hint: You need to add addionally the following for the file search tool calling when calling the create_agent method: 
      ```python
-        tools=file_search.definitions,
-        tool_resources=file_search.resources,
+    tools=file_search.definitions,
+    tool_resources=file_search.resources,
 
     ```
 1. Locate the comment **Create the connected agent tools for all 3 agents**. Observe how the policy_agent_tool was created and create the same for the rechereche_agent_tool and buchungs_agent_tool.
