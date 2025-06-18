@@ -114,8 +114,6 @@ Now that you've created an agent, you can test it in the playground chat.
 
 1. After you've replaced the placeholders, use the **CTRL+S** command to save your changes and then use the **CTRL+Q** command to close the code editor while keeping the cloud shell command line open.
 
-1. Open the 
-
 **You are now ready to go!**
 
 

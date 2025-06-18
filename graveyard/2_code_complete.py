@@ -152,14 +152,14 @@ async def main():
     kernel = Kernel()
 
     # The filter is used for demonstration purposes to show the function invocation.
-    kernel.add_filter("function_invocation", function_invocation_filter)
+    #kernel.add_filter("function_invocation", function_invocation_filter)
 
     ai_agent_settings = AzureAIAgentSettings()
 
     chat_completion_service = AzureChatCompletion(
     deployment_name="gpt-4.1",  
-    api_key="",
-    endpoint="", # Used to point to your service
+    api_key="AHWkbvvaYjaTyCOKBdFJs9D6LJIGxUR8eaU8TeqXAQExzSJIKIyYJQQJ99BFACfhMk5XJ3w3AAAAACOGZSMP",
+    endpoint="https://t-tobiasu-7828-resource.openai.azure.com/", # Used to point to your service
 )
 
     async with (
