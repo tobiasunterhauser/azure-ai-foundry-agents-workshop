@@ -234,13 +234,3 @@ Once complete, test your updated solution and observe how the orchestration impr
 | [Group Chat](https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-orchestration/group-chat) | All agents participate in a group conversation, coordinated by a group manager. | Brainstorming, collaborative problem solving, consensus building. |
 | [Magentic](https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-orchestration/magentic)   | Group chat-like orchestration inspired by [MagenticOne](https://magenticone.com/). | Complex, generalist multi-agent collaboration.                 |
 
-| **Agenda**                                                                                                                        | **Material/Slides**         |
-|----------------------------------------------------------------------------------------------------------------------------------|-----------------------------|
-| **Einführung in AI-Agenten:** Überblick über Microsofts Lösung mit AI Foundry und dem Foundry SDK                                | [Slides 1](#)               |
-| **Hands-on Hack in Breakout Rooms:** Entwicklung eigener Agenten mit AI Foundry und Azure AI Agents SDK                          | [Lab 1](#)                  |
-| **Pause**                                                                                                                        |                             |
-| **Semantic Kernel:** Multi-Agenten-Orchestrierung und offene Standards (MCP & A2A) im Überblick                                  | [Slides 2](#)               |
-| **Hands-on Hack in Breakout Rooms:** Orchestrierung mehrerer Agenten mit Semantic Kernel SDK inkl. Anbindung an MCP & A2A        | [Lab 2](#)                  |
-| **Pause**                                                                                                                        |                             |
-| **Abschluss:** Zusammenfassung der wichtigsten Erkenntnisse und Ausblick inklusive Blueprints für Enterprise Ready Agent Solutions| [Blueprints, Slides 3](#)   |
-
