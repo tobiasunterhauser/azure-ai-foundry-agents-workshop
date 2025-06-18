@@ -80,7 +80,7 @@ Now that you have a model deployed, you're ready to build the first AI agent. In
 
 Now that you've created an agent, you can test it in the playground chat.
 
-1. In the playground chat entry, enter the prompt: `Reise von münchen nach hamburg nächste Woche von Montag bis Freitag` and review the agent's response - which should be based on information in the expenses policy document you added as knowledge to the agent setup.
+1. In the playground chat entry, enter the prompt: `Reise von München nach Hamburg nächste Woche von Montag bis Freitag` and review the agent's response - which should be based on information in the expenses policy document you added as knowledge to the agent setup.
 
     > **Note**: If the agent fails to respond because the rate limit is exceeded. Wait a few seconds and try again. If there is insufficient quota available in your subscription, the model may not be able to respond. If the problem persists, try to increase the quota for your model on the **Models + endpoints** page.
 
