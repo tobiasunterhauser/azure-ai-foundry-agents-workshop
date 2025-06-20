@@ -9,7 +9,7 @@ In this exercise, you use the Azure AI Agent service in the Azure AI Foundry por
 ## What are we building ? 🚀
 
 
-Given that hte Travel Booking Agentic System was such a huge success you are tasked with implementing a **Multi-Agent Support System** for Munich Agent Factory GmbH. This system will automate and support for and customer service requests regarding purchased orders by orchestrating multiple specialized agents.
+Given that the Travel Booking Agentic System was such a huge success you are tasked with implementing a **Multi-Agent Support System** for Munich Agent Factory GmbH. This system will automate and support for and customer service requests regarding purchased orders by orchestrating multiple specialized agents.
 
 ### Your Implementation Requirements
 
@@ -82,12 +82,12 @@ Note how this time we are referencing **only the semantic_kernel SDK** and not t
 1. Locate the comment **Create the support agent in Azure AI Foundry** and add the following code: 
 
     ```python
-        support_agent_definition = await project_client.agents.create_agent(
-            model=ai_agent_settings.model_deployment_name,
-            name="SupportAgent",
-            instructions="Handle customer support requests and triage them to the appropriate agents.",
-            description="A customer support agent that triages issues."
-        )
+    support_agent_definition = await project_client.agents.create_agent(
+        model=ai_agent_settings.model_deployment_name,
+        name="SupportAgent",
+        instructions="Handle customer support requests and triage them to the appropriate agents.",
+        description="A customer support agent that triages issues."
+    )
     ```
 This creates the Agent with the defined properties in AI Foundry
 
@@ -104,28 +104,28 @@ This instantiates an AzureAIAgent instance of the created Foundry Agent. This al
 
 1. Locate the comment **Define the plugin for handling order-related tasks** and add the following code. 
     ```python
-        class OrderStatusPlugin:
-        @kernel_function
-        def check_order_status(self, order_id: str) -> str:
-            """Check the status of an order."""
-            # Simulate checking the order status
-            return f"Order {order_id} is shipped and will arrive in 2-3 days."
+    class OrderStatusPlugin:
+    @kernel_function
+    def check_order_status(self, order_id: str) -> str:
+        """Check the status of an order."""
+        # Simulate checking the order status
+        return f"Order {order_id} is shipped and will arrive in 2-3 days."
     ```
 
 1. Locate the comment **Create the Order Status agent** and create the Agent that calls the OrderStatus Plugin:
     
     ```python
-        order_status_agent_definition = await project_client.agents.create_agent(
-            model=ai_agent_settings.model_deployment_name,
-            name="OrderStatusAgent",
-            description="A customer support agent that checks order status.",
-            instructions="Handle order status requests."
-        )
-        order_status_agent = AzureAIAgent(
-            client=project_client,
-            definition=order_status_agent_definition,
-            plugins=[OrderStatusPlugin()]
-        )
+    order_status_agent_definition = await project_client.agents.create_agent(
+        model=ai_agent_settings.model_deployment_name,
+        name="OrderStatusAgent",
+        description="A customer support agent that checks order status.",
+        instructions="Handle order status requests."
+    )
+    order_status_agent = AzureAIAgent(
+        client=project_client,
+        definition=order_status_agent_definition,
+        plugins=[OrderStatusPlugin()]
+    )
     ```
 1. Locate the comment **Define the plugin for handling refunds**. Observe how the **OrderStatusPlugin** was created. And create a similar Plugin named **OrderRefundPlugin**  that checks if a specific order id is eligible for refund. Be creative. The return statement should look something like this:
 
@@ -136,24 +136,24 @@ This instantiates an AzureAIAgent instance of the created Foundry Agent. This al
 1. Locate the comment **Create the Refund agent**. Observe how the order_status Agent was created and Create the **refund_agent**. Don't forget to call your **OrderRefundPlugin**. User the following parameter:
     
     ```python
-        name="RefundAgent",
-        description="A customer support agent that handles refunds.",
-        instructions="Handle refund requests."
+    name="RefundAgent",
+    description="A customer support agent that handles refunds.",
+    instructions="Handle refund requests."
     ```
 1. Locate the comment **Define plugin for handling order returns** and create the **OrderReturnPlugin**
 
-1. Locate the comment **Create the Refund agent**. And create the **refund_agent**  using the following parameter:
+1. Locate the comment **Create the Order Return agent**. And create the **order_return_agent**  using the following parameter:
 
     ```python
-        name="RefundAgent",
-        description="A customer support agent that handles refunds.",
-        instructions="Handle refund requests."
+    name="OrderReturnAgent",
+    description="A customer support agent that handles order returns.",
+    instructions="Handle order return requests."
     ```
 
 1. Locateh the logic for the Agent handoffs at the comment **Define the handoff relationships between agents**  and add the following code: 
 
     ```python
-        handoffs = (
+    handoffs = (
         OrchestrationHandoffs()
         .add_many(
             source_agent=support_agent.name,
@@ -184,12 +184,12 @@ This instantiates an AzureAIAgent instance of the created Foundry Agent. This al
 1. Locate the comment **Create the handoff orchestration with the agents and handoffs** and add the following code:
 
     ```python
-          handoff_orchestration = HandoffOrchestration(
-            members=agents,
-            handoffs=handoffs,
-            streaming_agent_response_callback=streaming_agent_response_callback,
-            human_response_function=human_response_function,
-        )
+    handoff_orchestration = HandoffOrchestration(
+        members=agents,
+        handoffs=handoffs,
+        streaming_agent_response_callback=streaming_agent_response_callback,
+        human_response_function=human_response_function,
+    )
     ```
 
 1. Use the **CTRL+S** command to save your changes to the code file.
