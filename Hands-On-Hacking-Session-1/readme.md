@@ -55,6 +55,8 @@ Let's start by creating an Azure AI Foundry project.
 
     >**Note**: A GPT-4o base model is automatically deployed when creating your Agent and project.
 
+1. Deploy a GPT-4.1 model 
+
 You'll see that an agent with a default name has been created for you, along with your base model deployment.
 
 ## Create your Travel Research agent
@@ -93,7 +95,21 @@ Now that you've created an agent, you can test it in the playground chat.
     ```
    git clone https://github.com/tobiasunterhauser/ai-foundry-agents-workshop
     ```
-1. Open a terminal in the project root and setup a virtual python environment:
+1. Login into your azure subscription that was used to create your Foundry Project using the following command.
+    ```
+   az login
+    ```
+
+1. (Optional) If the previous command doesn't work this means that the azure cli is not yet installed on your local 
+   machine. Install it following the official Documentation and repeat the previous step: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+
+1. Open a terminal in the project root and go into the right directory for this session
+
+   ```
+    cd Hands-On-Hacking-Session-1 
+    ```
+
+1. Setup a virtual python environment:
     ```
     (Windows)
    python -m venv labenv

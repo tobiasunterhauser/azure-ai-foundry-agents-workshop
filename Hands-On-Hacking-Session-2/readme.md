@@ -32,7 +32,25 @@ You drew a first draft on how to solve the problem using the **Handoff Orchestra
     ```
    git clone https://github.com/tobiasunterhauser/ai-foundry-agents-workshop
     ```
-1. Open a terminal in the project root and setup a virtual python environment:
+
+1. (If not yet done in the previous exercise) Login into your azure subscription that was used to create your 
+   Foundry 
+   Project:
+    ```
+   az login
+    ```
+
+1. (Optional) If the previous command doesn't work this means that the azure cli is not yet installed on your local
+   machine. Install it following the official Documentation and repeat the previous step: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+
+1. Open a terminal in the project root and go into the right directory for this session
+
+   ```
+    cd Hands-On-Hacking-Session-2 
+    ```
+
+1. Setup a virtual python environment:
+
     ```
     (Windows)
    python -m venv labenv

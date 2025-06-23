@@ -1,8 +1,9 @@
 import os
 from dotenv import load_dotenv
-
 # Add references
-
+from azure.ai.agents import AgentsClient
+from azure.ai.agents.models import ConnectedAgentTool, MessageRole, ListSortOrder, FileSearchTool, FilePurpose
+from azure.identity import DefaultAzureCredential
 
 # Clear the console
 os.system('cls' if os.name=='nt' else 'clear')
@@ -13,7 +14,7 @@ project_endpoint = os.getenv("PROJECT_ENDPOINT")
 model_deployment = os.getenv("MODEL_DEPLOYMENT_NAME")
 
 # Create the agents client
-
+agents_client = AgentsClient(endpoint=project_endpoint, credential=DefaultAzureCredential())
 
 # Agent instructions
 orchestration_agent_name = "orchestrierungs_agent"
@@ -56,7 +57,7 @@ policy_agent_instructions = """
 Du bist der Policy-Prüfungs-Agent. Deine Aufgabe ist es, die Rahmenbedingungen für die eingegebene Reise aus der Reiserichtlinie zu extrahieren und zu prüfen, ob die geplante Reise regelkonform ist. Gib bei Verstößen klare Hinweise.
 """
 
-recherche_agent_name = "recherche_agent"
+recherche_agent_name = "reise-recherche_agent"
 recherche_agent_instructions = """
 Du bist der Recherche-Agent. Suche passende Transport- und Unterkunftsoptionen auf Basis der Nutzereingaben und der von Agent 1 gelieferten Richtlinien. Gib mehrere Optionen zurück, falls möglich.
 """
@@ -75,19 +76,31 @@ with agents_client:
 
 
     # Create the Booking Agent
+    buchungs_agent = agents_client.create_agent(
+        model=model_deployment,
+        name=buchungs_agent_name,
+        instructions=buchungs_agent_instructions
+    )
 
     
     # Define the path to the file to be uploaded
     policy_file_path = "Resources/Reiserichtlinie_Munich_Agent_Factory_GmbH_v1.pdf"
 
-    # Upload the travel policy file to foundry and create a vector store
-   
+    # Upload the file to foundry and create a vector store
+    file = agents_client.files.upload_and_poll(file_path=policy_file_path, purpose=FilePurpose.AGENTS)
+    vector_store = agents_client.vector_stores.create_and_poll(file_ids=[file.id], name="travel_policy_vector_store")
 
     # Create file search tool with resources followed by creating agent
-   
+    file_search = FileSearchTool(vector_store_ids=[vector_store.id])
 
     # Create the policy agent using the file search tool
-  
+    policy_agent = agents_client.create_agent(
+        model=model_deployment,
+        name=policy_agent_name,
+        instructions=policy_agent_instructions,
+        tools=file_search.definitions,
+        tool_resources=file_search.resources,
+    )
 
     # Create the connected agent tools for all 3 agents
     # Note: The connected agent tools are used to connect the agents to the orchestrator agent
@@ -96,16 +109,31 @@ with agents_client:
         name=policy_agent_name,
         description="Prüft die Reiserichtlinie für die geplante Reise."
     )
-
-    # add recherche_agent_tool
     
+    recherche_agent_tool = ConnectedAgentTool(
+        id=recherche_agent.id,
+        name=recherche_agent_name,
+        description="Sucht Transport- und Unterkunftsoptionen."
+    )
 
-    # add buchungs_agent_tool 
-
+    buchungs_agent_tool = ConnectedAgentTool(
+        id=buchungs_agent.id,
+        name=buchungs_agent_name,
+        description="Bucht genehmigte Reiseoptionen."
+    )
 
     # Create the Orchestrator Agent
     # This agent will coordinate the other agents based on user input
-    
+    orchestrator_agent = agents_client.create_agent(
+        model=model_deployment,
+        name=orchestration_agent_name,
+        instructions=orchestration_instructions,
+        tools=[
+            policy_agent_tool.definitions[0],
+            recherche_agent_tool.definitions[0],
+            buchungs_agent_tool.definitions[0]
+        ]
+    )
 
     print(f"Orchestrator-Agent '{orchestration_agent_name}' und verbundene Agenten wurden erfolgreich erstellt.")
 
