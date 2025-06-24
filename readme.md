@@ -6,13 +6,13 @@ Dieses Repository enthält alle Materialien für den **AI Foundry AI Agents Work
 
 | **Agenda**                                                                                                                        | **Material / Slides**                           |
 |:----------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------|
-| **Einführung in AI-Agenten:**<br>Überblick über Microsofts Lösung mit AI Foundry und dem Foundry SDK                              | [Download Slides](#)                            |
+| **Einführung in AI-Agenten:**<br>Überblick über Microsofts Lösung mit AI Foundry und dem Foundry SDK                              | [Open Slides](./Slides/AI_Foundry_Workshop_part_1_v.F.pdf)                            |
 | **Hands-on Hack in Breakout Rooms:**<br>Entwicklung eigener Agenten mit AI Foundry und Azure AI Agents SDK                        | [Hack Session 1](./Hands-On-Hacking-Session-1/) |
 | <span style="font-weight:bold; color:#555;">Pause</span>                                                                         |                                                 |
-| **Semantic Kernel:**<br>Multi-Agenten-Orchestrierung und offene Standards (MCP & A2A) im Überblick                                | [Download Slides]()                             |
+| **Semantic Kernel:**<br>Multi-Agenten-Orchestrierung und offene Standards (MCP & A2A) im Überblick                                | [Open Slides](./Slides/AI_Foundry_Workshop_part_2_v.F.pdf)                             |
 | **Hands-on Hack in Breakout Rooms:**<br>Orchestrierung mehrerer Agenten mit Semantic Kernel SDK inkl. Anbindung an MCP & A2A      | [Hack Session 2](./Hands-On-Hacking-Session-2/) |
 | <span style="font-weight:bold; color:#555;">Pause</span>                                                                         |                                                 |
-| **Abschluss:**<br>Zusammenfassung der wichtigsten Erkenntnisse und Ausblick inklusive Blueprints für Enterprise Ready Agent Solutions | [Download Slides](#)                            |
+| **Abschluss:**<br>Zusammenfassung der wichtigsten Erkenntnisse und Ausblick inklusive Blueprints für Enterprise Ready Agent Solutions | [Open Slides](./Slides/AI_Foundry_Workshop_part_3_v.F.pdf)                            |
 
 
 
