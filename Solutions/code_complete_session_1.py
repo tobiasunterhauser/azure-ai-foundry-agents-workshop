@@ -57,7 +57,7 @@ policy_agent_instructions = """
 Du bist der Policy-Prüfungs-Agent. Deine Aufgabe ist es, die Rahmenbedingungen für die eingegebene Reise aus der Reiserichtlinie zu extrahieren und zu prüfen, ob die geplante Reise regelkonform ist. Gib bei Verstößen klare Hinweise.
 """
 
-recherche_agent_name = "reise-recherche_agent"
+recherche_agent_name = "reise_recherche_agent"
 recherche_agent_instructions = """
 Du bist der Recherche-Agent. Suche passende Transport- und Unterkunftsoptionen auf Basis der Nutzereingaben und der von Agent 1 gelieferten Richtlinien. Gib mehrere Optionen zurück, falls möglich.
 """
